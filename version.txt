@@ -1,1 +1,1 @@
-version = 2.0-alice
+version = 2.0
