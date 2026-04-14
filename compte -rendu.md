@@ -1,124 +1,141 @@
-Question 1 : 
-Le répertoire .git/ contient toutes les données internes de Git pour le projet : l'historique des commits, les objets (blobs, trees, commits), les références (branches, tags), la configuration locale du dépôt et l'index (staging area).
-Il sert de base de données Git : c'est là que Git stocke tout ce qui permet de suivre les versions, reconstruire l'état du projet à une révision donnée et gérer les branches et tags.
-$ ls -la .git/
-total 11
-drwxr-xr-x 1 ktebi 197609   0 Mar 27 12:06 ./
-drwxr-xr-x 1 ktebi 197609   0 Mar 27 12:06 ../
--rw-r--r-- 1 ktebi 197609  23 Mar 27 12:06 HEAD
--rw-r--r-- 1 ktebi 197609 130 Mar 27 12:06 config
--rw-r--r-- 1 ktebi 197609  73 Mar 27 12:06 description
-drwxr-xr-x 1 ktebi 197609   0 Mar 27 12:06 hooks/
-drwxr-xr-x 1 ktebi 197609   0 Mar 27 12:06 info/
-drwxr-xr-x 1 ktebi 197609   0 Mar 27 12:06 objects/
-drwxr-xr-x 1 ktebi 197609   0 Mar 27 12:06 refs/
+# Compte-rendu TP 2 - Integration Continue avec GitHub Actions
 
+La liste fournie dans le sujet contient 11 points. Les reponses
+ci-dessous couvrent l'ensemble des questions demandees.
 
+## 1. Signification de `on`, `jobs`, `runs-on`, `steps` et `uses`
 
-Question 2 : 
-Untracked : fichier présent dans le répertoire de travail mais que Git ne suit pas encore, il n'a jamais été ajouté avec git add.
-Staged : fichier ajouté à l'index avec git add, ses modifications sont prêtes à être incluses dans le prochain commit.
-Committed : fichier dont l'état actuel a été enregistré dans l'historique Git via un commit, il fait partie d'une version figée du projet.
+- `on` definit les evenements qui declenchent le workflow, par exemple
+  un `push` ou une `pull_request`.
+- `jobs` regroupe les taches principales du workflow. Chaque job
+  s'execute dans un environnement isole.
+- `runs-on` indique le type de machine utilisee pour executer le job,
+  par exemple `ubuntu-latest`.
+- `steps` correspond a la suite d'actions executees dans le job.
+- `uses` permet de reutiliser une action publiee sur GitHub Marketplace
+  ou definie dans un autre depot.
 
-Question 3 : 
-On utilise git diff pour vérifier les changements en cours avant de décider quoi ajouter.
-On utilise git diff --staged pour relire précisément ce qui sera committé avant d'exécuter git commit.
+## 2. Role de la fixture `client` et de `app.test_client()`
 
-Question 4 : 
-On utilise git revert pour annuler un commit déjà poussé sur un dépôt partagé.
-On utilise git reset (surtout --soft ou --hard) pour réorganiser ou corriger l'historique local avant de pousser.
+La fixture `client` centralise la creation d'un client de test Flask.
+Elle evite de dupliquer le meme code dans chaque test et garantit un
+contexte de test propre.
 
-Question 5 : 
-Un fast-forward merge est une fusion où Git avance simplement le pointeur de la branche cible vers le commit de la branche fusionnée, sans créer de commit de merge.
-Git effectue un fast-forward quand la branche cible n'a pas de commits supplémentaires par rapport à la branche à fusionner, c'est-à-dire qu'il n'y a pas de divergence dans l'historique.
+`app.test_client()` simule des requetes HTTP sans lancer un vrai serveur.
+On peut donc tester les routes, les codes de statut et les reponses de
+maniere rapide, fiable et reproductible.
 
-Question 6 : 
-On supprime les branches une fois fusionnées pour :
-•	Garder un dépôt propre et organisé
-•	Éviter l'accumulation de branches obsolètes
-•	Encourager un flux de travail clair (chaque branche sert à une feature ou un bugfix précis)
-Différence :
-•	git branch -d supprime une branche seulement si elle a été fusionnée dans la branche courante (protection contre la perte de travail).
-•	git branch -D force la suppression même si la branche n'est pas fusionnée.
+## 3. Pourquoi tester localement avant de pousser
 
-Question 7 : 
-Décrivez en vos propres mots ce qu'est un conflit Git, pourquoi il survient, et quelles sont les étapes pour le résoudre.
-Définition
-Un conflit Git se produit lorsque Git ne peut pas fusionner automatiquement des modifications car la même partie d'un fichier a été modifiée différemment dans deux branches.
-Causes
-Il survient typiquement lors d'un git merge ou d'un git rebase quand les changements se chevauchent sur les mêmes lignes.
-Étapes de résolution
-1.	Identifier les fichiers en conflit (Git les signale avec des marqueurs : <<<<<<<, =======, >>>>>>>)
-2.	Éditer les fichiers conflictuels et choisir ou combiner les versions souhaitées
-3.	Supprimer les marqueurs de conflit
-4.	Faire git add sur les fichiers corrigés
-5.	Terminer la fusion par git commit
+Tester localement permet de detecter les erreurs avant d'envoyer le code
+sur GitHub. Cela fait gagner du temps, evite des allers-retours
+inutiles et limite les echecs visibles dans la CI.
 
-Question 8 :
-Quelle est la différence entre git fetch et git pull ? Dans quel cas préférer l'un à git fetch récupère les nouveaux commits du dépôt distant vers les branches distantes locales (par exemple origin/main) sans modifier la branche courante.
-•	git pull équivaut à git fetch suivi d'un merge (ou rebase) dans la branche courante, il met directement à jour ton travail local.
-Préférence :
-•	On préfère git fetch quand on veut d'abord inspecter les changements ou contrôler manuellement la manière de les intégrer.
-•	On préfère git pull pour se mettre rapidement à jour quand on accepte l'intégration automatique.
+Si un test echoue dans la CI, le job est marque en echec. Dans un projet
+avec branche `main` protegee, la fusion peut alors etre bloquee tant que
+le probleme n'est pas corrige.
 
-Question 9 : 
-Intérêt des Pull Requests
-•	Proposer des changements avant qu'ils ne soient fusionnés dans main
-•	Introduire une étape de revue, de discussion et de validation
-•	Protéger la branche principale contre des erreurs ou régressions
-code review
-•	La lisibilité et la qualité du code
-•	Le respect des conventions du projet
-•	La présence de tests pertinents
-•	L'impact sur la sécurité et les performances
-•	La cohérence fonctionnelle avec la spécification
-•	Pas de code dupliqué ou inutile
-•	Documentation adéquate
+## 4. Qu'est-ce qu'un artefact GitHub Actions
 
-Question 10 
-Il est important de ne pas versionner certains fichiers pour :
-•	Éviter d'exposer des secrets et des données sensibles
-•	Éviter de polluer l'historique avec des fichiers générés ou spécifiques à un environnement
-•	Limiter la taille du dépôt
-•	Maintenir une cohésion entre développeurs
-Trois exemples
-1. Fichiers de secrets ou de configuration sensible (.env, *.key, *.pem)
-•	Contiennent des mots de passe, tokens ou clés privées
-•	Ne doivent jamais être partagés ou visibles dans l'historique public
-•	Risque majeur de sécurité
-2. Fichiers générés ou de cache (__pycache__/, *.pyc, artefacts de build)
-•	Peuvent être recréés à partir du code source
-•	Encombrent inutilement le dépôt et augmentent sa taille
-•	N'apportent aucune valeur à la collaboration
-3. Fichiers spécifiques à un IDE ou au système (.vscode/, .idea/, .DS_Store, Thumbs.db)
-•	Dépendent de la machine et de l'outil de chaque développeur
-•	N'ont pas d'intérêt fonctionnel pour le projet
-•	Créent du bruit dans les diffs et les commits
+Un artefact est un fichier ou un dossier produit par un workflow et
+conserve apres l'execution pour etre telecharge ou consulte.
 
-Question 11 : Utilisation avancée de Git
-Expliquez dans quelles situations git stash, git bisect et git reflog vous seraient utiles dans un projet réel.
-git stash
-Utilité : Sauvegarder temporairement des modifications en cours sans les committer.
-Situations réelles :
-•	On a du travail en cours non terminé mais on doit changer de branche d'urgence
-•	On doit faire un git pull proprement sans ses modifications locales
-•	On veut tester une autre version du code sans perdre ses modifications actuelles
-•	On doit nettoyer le working directory avant une opération Git
-Exemple : Stash les modifications de la branche feature, switch vers main pour un hotfix, puis pop le stash pour reprendre le travail.
-git bisect
-Utilité : Retrouver rapidement le commit qui a introduit un bug en testant automatiquement une série de commits par dichotomie.
-Situations réelles :
-•	Un bug a été découvert mais on ne sait pas quel commit l'a causé
-•	On doit localiser une régression dans une longue série de commits
-•	On veut diagnostiquer un problème de performance ou d'intégrité
-Exemple : Entre le commit v1.0 (bon) et maintenant (mauvais), git bisect teste automatiquement le point médian, on indique si c'est bon ou mauvais, et il resserre progressivement la recherche jusqu'au commit coupable.
-git reflog
-Utilité : Récupérer des commits "perdus" et consulter la trace complète de tous les mouvements de HEAD.
-Situations réelles :
-•	On a fait un git reset --hard et on veut annuler cette action
-•	On a accidentellement changé de branche et perdu une série de commits
-•	On doit auditer l'historique des manipulations locales
-•	On a besoin de retrouver un commit qu'on croyait supprimé
-Exemple : Après un reset malencontreux, git reflog montre tous les commits antérieurs, on peut alors faire git cherry-pick <hash> pour récupérer le travail "perdu".
+Trois exemples d'artefacts :
 
-https://github.com/ktebily-sudo/usinage-logicielle-
+1. un rapport HTML de couverture de code
+2. un binaire ou une archive de build
+3. des journaux de test ou un rapport XML/JUnit
+
+## 5. Couverture de code et limite du 100 %
+
+La couverture de code mesure la proportion du code executee par les
+tests. Elle donne un indicateur utile pour reperer les zones non
+testees.
+
+Viser 100 % n'est pas toujours souhaitable, car cela peut encourager des
+tests artificiels qui verifient l'implementation au lieu du comportement
+metier. Une bonne strategie consiste a privilegier les cas critiques, les
+branches utiles et les regressions probables plutot qu'un score parfait
+pour lui-meme.
+
+## 6. Role d'un linter et pourquoi l'executer avant les tests
+
+Un linter analyse le code source pour detecter des problemes de style,
+des incoherences et certaines erreurs simples avant l'execution.
+
+L'executer avant les tests permet de stopper rapidement une revision qui
+ne respecte pas les conventions du projet. Cela economise du temps de CI
+et rend le pipeline plus lisible : on valide d'abord la qualite
+statique, puis le comportement.
+
+## 7. Fonctionnement du cache dans GitHub Actions
+
+Le cache permet de reutiliser des dependances deja telechargees au lieu
+de tout reinstaller a chaque execution. Ici, la cle du cache repose sur
+le hash de `requirements.txt`.
+
+Si `requirements.txt` change, le hash change aussi. GitHub Actions ne
+retrouve alors pas l'ancien cache exact et reconstruit un nouveau cache
+adapte aux nouvelles dependances.
+
+## 8. GitHub-hosted vs self-hosted runners
+
+Les runners GitHub-hosted sont fournis et maintenus par GitHub. Ils sont
+simples a utiliser, preconfigures et bien adaptes a un TP ou a un petit
+projet.
+
+Les runners self-hosted sont geres par l'equipe du projet. Ils offrent
+plus de controle sur la machine, le reseau et les outils installes, mais
+ils demandent plus d'administration, de maintenance et de securisation.
+
+## 9. Workflow complet avec une branche `main` protegee
+
+Workflow recommande :
+
+1. le developpeur cree une branche de travail
+2. il code, lance `flake8` et `pytest` en local
+3. il pousse sa branche sur GitHub
+4. il ouvre une Pull Request vers `main`
+5. le workflow CI se declenche automatiquement
+6. GitHub execute le linting, les tests et publie l'artefact
+7. si tout est vert, la revue peut etre validee
+8. la fusion dans `main` est autorisee seulement si les checks requis
+   passent
+
+Avec une branche `main` protegee, on evite les pushes directs non
+verifies et on impose un passage par la PR et les checks obligatoires.
+
+## 10. Action de marketplace a integrer et pourquoi
+
+Une action utile ici est `actions/upload-artifact@v4`. Elle permet de
+conserver le rapport HTML de couverture apres l'execution du workflow.
+
+Exemple concret : meme si un test echoue, on peut telecharger
+`coverage-report/` depuis l'onglet Actions pour analyser ce qui a ete
+couvert et garder une trace exploitable du job.
+
+## 11. Utilisation de `@pytest.mark.parametrize` pour `/add`
+
+`@pytest.mark.parametrize` permet d'executer le meme test avec plusieurs
+jeux de donnees. C'est ideal pour `/add`, car on veut verifier plusieurs
+couples de valeurs sans dupliquer le code de test.
+
+Exemple :
+
+```python
+@pytest.mark.parametrize(
+    ("a", "b", "expected"),
+    [
+        (0, 0, 0),
+        (2, 3, 5),
+        (10, 15, 25),
+    ],
+)
+def test_add_route(client, a, b, expected):
+    response = client.get(f"/add/{a}/{b}")
+    assert response.status_code == 200
+    assert response.get_json()["result"] == expected
+```
+
+Cette approche rend la suite de tests plus compacte, plus lisible et
+plus facile a faire evoluer.
