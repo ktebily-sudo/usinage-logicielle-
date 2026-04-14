@@ -1,6 +1,6 @@
 # TP 2 - Integration Continue avec Flask
 
-[![CI](https://github.com/ktebily-sudo/usinage-logicielle-/actions/workflows/ci.yml/badge.svg)](https://github.com/ktebily-sudo/usinage-logicielle-/actions/workflows/ci.yml)
+![CI](https://github.com/ktebily-sudo/usinage-logicielle-/actions/workflows/ci.yml/badge.svg)
 
 Projet Flask minimal pour le TP 2 "Integration Continue avec GitHub
 Actions". Le depot contient une application simple, une suite de tests

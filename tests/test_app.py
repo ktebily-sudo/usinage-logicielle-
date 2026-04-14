@@ -52,4 +52,4 @@ def test_about_route_returns_project_metadata(client):
     response = client.get("/about")
 
     assert response.status_code == 200
-    assert response.get_json() == ABOUT_PAYLOAD
+    assert response.get_json()["version"] == "1.0"

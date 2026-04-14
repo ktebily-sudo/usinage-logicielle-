@@ -1,11 +1,7 @@
 from flask import Flask, jsonify
 
 HOME_MESSAGE = "Bienvenue sur l'application Flask du TP 2."
-ABOUT_PAYLOAD = {
-    "application": "tp2-ci-flask",
-    "framework": "Flask",
-    "ci": "GitHub Actions",
-}
+ABOUT_PAYLOAD = {"app": "Mon projet Flask", "version": "1.0"}
 
 
 def create_app():
