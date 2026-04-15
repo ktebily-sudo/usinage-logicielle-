@@ -2,6 +2,7 @@ name: CI Flask
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: "true"
+  SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 on:
   push:
@@ -11,6 +12,10 @@ on:
     branches:
       - main
 
+permissions:
+  contents: read
+  pull-requests: read
+
 jobs:
   quality-and-tests:
     runs-on: ubuntu-latest
@@ -18,11 +23,13 @@ jobs:
     steps:
       - name: Recuperer le code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-      - name: Installer Python
+      - name: Installer Python 3.12
         uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
+          python-version: "3.12"
 
       - name: Restaurer le cache pip
         uses: actions/cache@v4
@@ -37,31 +44,42 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
-      - name: Lancer flake8
-        run: python -m flake8 src tests
+      - name: Verifier le formatage avec Black
+        run: black --check src/ tests/
 
-      - name: Preparer le dossier de couverture
-        run: mkdir -p coverage-report
+      - name: Verifier le lint avec Ruff
+        run: ruff check src/ tests/
+
+      - name: Analyser la securite avec Bandit
+        run: bandit -r src/ -ll
+
+      - name: Analyser la securite avec Semgrep
+        run: semgrep --config auto --error src/
 
       - name: Lancer pytest avec couverture
         run: |
-          python -m pytest \
+          mkdir -p coverage-report
+          pytest \
             --cov=src \
             --cov-report=term-missing \
-            --cov-report=html:coverage-report
+            --cov-report=html:coverage-report \
+            --cov-report=xml \
+            --cov-fail-under=70 \
+            -v
 
-      - name: Ajouter un message si le rapport est incomplet
-        if: always()
-        run: |
-          if [ ! -f coverage-report/index.html ]; then
-            echo "Le rapport HTML n'a pas pu etre genere completement." \
-              > coverage-report/README.txt
-          fi
+      - name: Analyser le projet avec SonarCloud
+        if: env.SONAR_TOKEN != ''
+        uses: SonarSource/sonarcloud-github-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
       - name: Publier le rapport de couverture
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage-report/
+          path: |
+            coverage-report/
+            coverage.xml
           if-no-files-found: warn

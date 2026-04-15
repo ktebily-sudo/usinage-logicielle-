@@ -1,11 +1,11 @@
-# TP 2 - Integration Continue avec Flask
+# TP 3 - Qualite de code dans la CI Flask
 
 ![CI](https://github.com/ktebily-sudo/usinage-logicielle-/actions/workflows/ci.yml/badge.svg)
 
-Projet Flask minimal pour le TP 2 "Integration Continue avec GitHub
-Actions". Le depot contient une application simple, une suite de tests
-`pytest` et un pipeline CI qui execute le linting, les tests et la
-generation d'un rapport de couverture HTML.
+Projet Flask minimal pour le TP 3 "Qualite de code". Le depot contient
+une application simple, une suite de tests `pytest` et un pipeline
+GitHub Actions qui verifie le formatage, le linting, l'analyse de
+securite, la couverture et l'analyse SonarCloud.
 
 ## Structure du projet
 
@@ -32,6 +32,7 @@ generation d'un rapport de couverture HTML.
 python -m venv .venv
 .venv\Scripts\Activate.ps1
 pip install -r requirements.txt
+pip install pre-commit
 ```
 
 ## Lancer l'application
@@ -45,26 +46,38 @@ L'application est alors accessible sur `http://127.0.0.1:5000`.
 ## Verification locale
 
 ```powershell
-python -m flake8 src tests
-python -m pytest --cov=src --cov-report=term-missing --cov-report=html:coverage-report
+black --check --diff src/ tests/
+ruff check src/ tests/
+bandit -r src/
+semgrep --config auto src/
+pytest --cov=src --cov-report=term-missing --cov-report=html:coverage-report --cov-report=xml --cov-fail-under=70 -v
 ```
 
-Le rapport HTML est genere dans `coverage-report/`. Ouvrir ensuite
-`coverage-report/index.html` dans un navigateur pour consulter la
-couverture.
+Le rapport HTML est genere dans `coverage-report/` et le rapport XML
+dans `coverage.xml`.
+
+## Hooks pre-commit
+
+```powershell
+pre-commit install
+pre-commit run --all-files
+```
 
 ## Workflow GitHub Actions
 
 Le workflow `ci.yml` :
 
 - se declenche sur `push` et `pull_request` vers `main`
-- installe Python 3.11
+- installe Python 3.12
 - restaure le cache `pip` a partir de `requirements.txt`
 - installe les dependances
-- execute `flake8`
-- execute `pytest` avec couverture
-- genere `coverage-report/`
-- publie le rapport en artefact, meme si les tests echouent
+- verifie le formatage avec `black --check`
+- execute `ruff check`
+- execute `bandit -r src/ -ll`
+- execute `semgrep --config auto --error src/`
+- execute `pytest` avec couverture et seuil minimal
+- lance SonarCloud si `SONAR_TOKEN` est configure
+- publie `coverage-report/` et `coverage.xml` en artefacts
 
 ## Protection de la branche `main`
 

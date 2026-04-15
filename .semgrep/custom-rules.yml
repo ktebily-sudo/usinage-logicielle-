@@ -1,0 +1,10 @@
+rules:
+  - id: no-print-in-src
+    languages:
+      - python
+    severity: WARNING
+    message: "Evite print() dans le code applicatif. Utilise plutot un logger."
+    paths:
+      include:
+        - "**/src/**/*.py"
+    pattern: print(...)
