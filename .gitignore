@@ -52,6 +52,9 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 bandit-report.json
+pip-audit-report.json
+gitleaks-report.json
+gitleaks-report.sarif
 cover/
 
 # Translations
