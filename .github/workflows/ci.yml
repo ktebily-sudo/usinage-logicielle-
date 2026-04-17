@@ -59,7 +59,7 @@ jobs:
       - name: Lancer pytest avec couverture
         run: |
           mkdir -p coverage-report
-          pytest \
+          python -m pytest \
             --cov=src \
             --cov-report=term-missing \
             --cov-report=html:coverage-report \

@@ -50,7 +50,7 @@ black --check --diff src/ tests/
 ruff check src/ tests/
 bandit -r src/
 semgrep --config auto src/
-pytest --cov=src --cov-report=term-missing --cov-report=html:coverage-report --cov-report=xml --cov-fail-under=70 -v
+python -m pytest --cov=src --cov-report=term-missing --cov-report=html:coverage-report --cov-report=xml --cov-fail-under=70 -v
 ```
 
 Le rapport HTML est genere dans `coverage-report/` et le rapport XML
