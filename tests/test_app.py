@@ -53,3 +53,20 @@ def test_about_route_returns_project_metadata(client):
 
     assert response.status_code == 200
     assert response.get_json() == ABOUT_PAYLOAD
+
+
+def test_app_generates_a_secret_key_when_env_is_missing(monkeypatch):
+    monkeypatch.delenv("FLASK_SECRET_KEY", raising=False)
+
+    app = create_app()
+
+    assert isinstance(app.config["SECRET_KEY"], str)
+    assert len(app.config["SECRET_KEY"]) >= 32
+
+
+def test_app_reads_secret_key_from_environment(monkeypatch):
+    monkeypatch.setenv("FLASK_SECRET_KEY", "tp4-test-secret")
+
+    app = create_app()
+
+    assert app.config["SECRET_KEY"] == "tp4-test-secret"

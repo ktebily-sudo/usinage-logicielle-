@@ -1,15 +1,19 @@
+import os
+import secrets
+
 from flask import Flask, jsonify
 
 HOME_MESSAGE = "Bienvenue sur l'application Flask du TP 2."
-ABOUT_PAYLOAD = {
-    "application": "tp2-ci-flask",
-    "framework": "Flask",
-    "ci": "GitHub Actions",
-}
+ABOUT_PAYLOAD = {"app": "Mon projet Flask", "version": "1.0"}
+
+
+def get_secret_key():
+    return os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
 
 
 def create_app():
     app = Flask(__name__)
+    app.config["SECRET_KEY"] = get_secret_key()
 
     @app.get("/")
     def index():
@@ -38,4 +42,4 @@ app = create_app()
 
 
 if __name__ == "__main__":  # pragma: no cover
-    app.run(debug=True)
+    app.run()
