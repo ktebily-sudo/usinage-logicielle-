@@ -70,3 +70,12 @@ def test_app_reads_secret_key_from_environment(monkeypatch):
     app = create_app()
 
     assert app.config["SECRET_KEY"] == "tp4-test-secret"
+
+
+def test_app_reads_secret_key_from_docker_environment(monkeypatch):
+    monkeypatch.delenv("FLASK_SECRET_KEY", raising=False)
+    monkeypatch.setenv("SECRET_KEY", "tp5-docker-secret")
+
+    app = create_app()
+
+    assert app.config["SECRET_KEY"] == "tp5-docker-secret"
