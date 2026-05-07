@@ -5,6 +5,7 @@ from flask import Flask, jsonify
 
 HOME_MESSAGE = "Bienvenue sur l'application Flask du TP 2."
 ABOUT_PAYLOAD = {"app": "Mon projet Flask", "version": "1.0"}
+APP_VERSION = "1.1.0"
 
 
 def get_secret_key():
@@ -34,6 +35,10 @@ def create_app():
     @app.get("/about")
     def about():
         return jsonify(ABOUT_PAYLOAD)
+
+    @app.get("/version")
+    def version():
+        return jsonify({"version": APP_VERSION})
 
     return app
 

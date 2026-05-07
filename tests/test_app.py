@@ -1,6 +1,6 @@
 import pytest
 
-from src.app import ABOUT_PAYLOAD, HOME_MESSAGE, create_app
+from src.app import ABOUT_PAYLOAD, APP_VERSION, HOME_MESSAGE, create_app
 
 
 @pytest.fixture()
@@ -53,6 +53,14 @@ def test_about_route_returns_project_metadata(client):
 
     assert response.status_code == 200
     assert response.get_json() == ABOUT_PAYLOAD
+
+
+def test_version_route_returns_project_version(client):
+    response = client.get("/version")
+
+    assert response.status_code == 200
+    assert "version" in response.get_json()
+    assert response.get_json()["version"] == APP_VERSION
 
 
 def test_app_generates_a_secret_key_when_env_is_missing(monkeypatch):
