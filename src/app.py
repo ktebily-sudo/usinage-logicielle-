@@ -8,7 +8,7 @@ ABOUT_PAYLOAD = {"app": "Mon projet Flask", "version": "1.0"}
 
 
 def get_secret_key():
-    return os.getenv("FLASK_SECRET_KEY") or secrets.token_hex(32)
+    return os.getenv("FLASK_SECRET_KEY") or os.getenv("SECRET_KEY") or secrets.token_hex(32)
 
 
 def create_app():

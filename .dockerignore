@@ -1,0 +1,16 @@
+__pycache__/
+*.pyc
+.env
+venv/
+.venv/
+.git/
+.github/
+tests/
+coverage-report/
+.pytest_cache/
+pytest-cache-files-*/
+.ruff_cache/
+.semgrep/
+*.md
+coverage.xml
+.coverage
